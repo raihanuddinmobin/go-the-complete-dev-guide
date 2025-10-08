@@ -11,6 +11,7 @@ import (
 	"mobin.dev/internals/service"
 	"mobin.dev/pkg/constants"
 	"mobin.dev/pkg/pagination"
+	"mobin.dev/pkg/response"
 )
 
 type NotesHandler struct {
@@ -28,10 +29,7 @@ func (h *NotesHandler) GetNotesHandler(ctx *gin.Context) {
 	cursorStr := ctx.DefaultQuery("cursor", "")
 
 	if errPage != nil || limit <= 0 {
-		ctx.JSON(http.StatusBadRequest, dtos.ApiResponseList[[]dtosV1.NoteResponse, dtos.CursorBasedResponseMeta]{
-			Success: false,
-			Message: "Invalid 'limit' Query Params!",
-		})
+		response.Error(ctx, http.StatusBadRequest, "Invalid 'limit' Query Params!")
 		return
 	}
 
@@ -47,11 +45,9 @@ func (h *NotesHandler) GetNotesHandler(ctx *gin.Context) {
 		c, err := pagination.DecodeCursor(cursorStr)
 
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, dtos.ApiResponseList[[]dtosV1.NoteResponse, dtos.CursorBasedResponseMeta]{
-				Success: false,
-				Message: "Invalid Cursor",
-			})
+			response.Error(ctx, http.StatusBadRequest, "Invalid Cursor!")
 			return
+
 		}
 		cursor = c
 	}
@@ -67,19 +63,11 @@ func (h *NotesHandler) GetNotesHandler(ctx *gin.Context) {
 			message = "Invalid Cursor"
 		}
 
-		ctx.JSON(status, dtos.ApiResponseList[[]dtosV1.NoteResponse, dtos.CursorBasedResponseMeta]{
-			Success: false,
-			Message: message,
-		})
+		response.Error(ctx, status, message)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dtos.ApiResponseList[[]dtosV1.NoteResponse, dtos.CursorBasedResponseMeta]{
-		Success: true,
-		Data:    notes,
-		Message: "Get Notes Successfully!",
-		Meta:    meta,
-	})
+	response.ResponseList(ctx, http.StatusOK, true, "Get Notes Successfully!", notes, meta)
 }
 
 func (h *NotesHandler) GetNoteHandler(ctx *gin.Context) {
@@ -88,11 +76,7 @@ func (h *NotesHandler) GetNoteHandler(ctx *gin.Context) {
 	id, err := strconv.Atoi(paramsId)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dtos.ApiResponseSingle[dtosV1.NoteResponse]{
-			Success: false,
-			Message: "Invalid Note Id",
-			Data:    nil,
-		})
+		response.Error(ctx, http.StatusBadRequest, "Invalid Note Id")
 		return
 	}
 
@@ -100,47 +84,30 @@ func (h *NotesHandler) GetNoteHandler(ctx *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, service.ErrNoteNotFound) {
-			ctx.JSON(http.StatusNotFound, dtos.ApiResponseSingle[dtosV1.NoteResponse]{
-				Success: false,
-				Message: "Note Not Found!",
-				Data:    note,
-			})
+			response.Error(ctx, http.StatusNotFound, "Note Not Found!")
 		} else {
-			ctx.JSON(http.StatusInternalServerError, dtos.ApiResponseSingle[dtosV1.NoteResponse]{
-				Success: false,
-				Message: "Failed To Fetch Note!",
-				Data:    note,
-			})
+			response.Error(ctx, http.StatusInternalServerError, "Failed To Fetch Note!")
 		}
 
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dtos.ApiResponseSingle[dtosV1.NoteResponse]{
-		Success: true,
-		Data:    note,
-		Message: "Get Note Successfully!",
-	})
+	response.OK(ctx, "Get Note Successfully!", note)
 }
 func (h *NotesHandler) CreateDummyNotesHandler(ctx *gin.Context) {
 	var dummyNotesBody dtosV1.DummyNoteRequest
 
 	if err := ctx.ShouldBindBodyWithJSON(&dummyNotesBody); err != nil {
-		ctx.JSON(http.StatusBadRequest, dtos.ApiResponseSingle[any]{
-			Message: "Size must be greater than 0",
-			Success: false,
-		})
+		response.Error(ctx, http.StatusBadRequest, "Size must be greater than 0")
 		return
 	}
 
 	if err := h.s.CreateDummyNotes(ctx.Request.Context(), dummyNotesBody.Size); err != nil {
-		ctx.JSON(http.StatusBadRequest, dtos.ApiResponseSingle[any]{
-			Message: "Failed to create dummy notes",
-			Success: false,
-		})
+		response.Error(ctx, http.StatusBadRequest, "Failed to create dummy notes")
 		return
 	}
 
+	// for this case i cannot may be use that reusable response
 	ctx.JSON(http.StatusCreated, dtos.ApiResponseSingle[dtosV1.DummyNoteRequest]{
 		Message: "Dummy Notes Created Successfully",
 		Data: &dtosV1.DummyNoteRequest{
@@ -148,4 +115,6 @@ func (h *NotesHandler) CreateDummyNotesHandler(ctx *gin.Context) {
 		},
 		Success: true,
 	})
+
+	// response.OK(ctx, "Dummy Notes Created Successfully")
 }
