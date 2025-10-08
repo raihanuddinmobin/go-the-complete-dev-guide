@@ -59,9 +59,17 @@ func (h *NotesHandler) GetNotesHandler(ctx *gin.Context) {
 	notes, meta, err := h.s.GetNotes(ctx.Request.Context(), cursor, limit)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dtos.ApiResponseList[[]dtosV1.NoteResponse, dtos.CursorBasedResponseMeta]{
+		status := http.StatusInternalServerError
+		message := "Failed to fetch notes"
+
+		if errors.Is(err, service.ErrorInvalidCursor) {
+			status = http.StatusBadRequest
+			message = "Invalid Cursor"
+		}
+
+		ctx.JSON(status, dtos.ApiResponseList[[]dtosV1.NoteResponse, dtos.CursorBasedResponseMeta]{
 			Success: false,
-			Message: "Failed To Fetch Notes!",
+			Message: message,
 		})
 		return
 	}

@@ -27,6 +27,7 @@ func NewNotesRepo(db *sql.DB) *NotesRepo {
 func (r *NotesRepo) FetchNotes(ctx context.Context, cursor pagination.Cursor, limit int) ([]model.Note, bool, error) {
 	baseQuery := `SELECT id, user_id, title, body, tags, created_at, updated_at FROM notes `
 
+	fetchLimit := limit + 1
 	var args []interface{}
 	var whereClause string
 
@@ -42,7 +43,7 @@ func (r *NotesRepo) FetchNotes(ctx context.Context, cursor pagination.Cursor, li
 		query += ` ORDER BY created_at DESC, id DESC LIMIT $1`
 	}
 
-	args = append(args, limit)
+	args = append(args, fetchLimit)
 
 	fmt.Println(query, args)
 	rows, err := r.db.QueryContext(ctx, query, args...)
@@ -53,7 +54,7 @@ func (r *NotesRepo) FetchNotes(ctx context.Context, cursor pagination.Cursor, li
 
 	defer rows.Close()
 
-	notes := make([]model.Note, 0)
+	notes := make([]model.Note, 0, limit)
 
 	for rows.Next() {
 		var note model.Note
@@ -74,15 +75,17 @@ func (r *NotesRepo) FetchNotes(ctx context.Context, cursor pagination.Cursor, li
 		return nil, false, fmt.Errorf("row iteration error: %w", err)
 	}
 
-	nextRowCount := 0
-	row := r.db.QueryRowContext(ctx, `SELECT COUNT(1) FROM notes WHERE id = $1`, notes[len(notes)-1].Id)
-	err = row.Scan(&nextRowCount)
-
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to scan row : %w ", err)
+	if len(notes) == 0 {
+		return notes, false, nil
 	}
 
-	return notes, nextRowCount == 1, nil
+	hasNext := false
+	if len(notes) > limit {
+		hasNext = true
+		notes = notes[:limit]
+	}
+
+	return notes, hasNext, nil
 }
 
 func (r *NotesRepo) FetchNote(ctx context.Context, id int) (*model.Note, error) {

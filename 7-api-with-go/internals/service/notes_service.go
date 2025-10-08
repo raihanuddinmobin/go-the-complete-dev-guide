@@ -16,6 +16,7 @@ var (
 	ErrNoteNotFound       = errors.New("note not found")
 	ErrNotesFetchFailed   = errors.New("failed to fetch notes")
 	ErrorDummyNotesInsert = errors.New("failed to insert dummy notes")
+	ErrorInvalidCursor    = errors.New("invalid cursor")
 )
 
 type NotesService struct {
@@ -31,7 +32,6 @@ func NewNotesService(r *repository.NotesRepo) *NotesService {
 func (s *NotesService) GetNotes(ctx context.Context, cursor pagination.Cursor, limit int) ([]dtosV1.NoteResponse, *dtos.CursorBasedResponseMeta, error) {
 	notes, hasNext, err := s.r.FetchNotes(ctx, cursor, limit)
 
-	fmt.Println(err)
 	if err != nil {
 		return nil, &dtos.CursorBasedResponseMeta{}, fmt.Errorf("%w : %v", ErrNotesFetchFailed, err)
 	}
@@ -41,7 +41,12 @@ func (s *NotesService) GetNotes(ctx context.Context, cursor pagination.Cursor, l
 	if len(notes) == limit {
 		last := notes[len(notes)-1]
 		newCursor := pagination.Cursor{CreateAt: last.CreatedAt, Id: last.Id}
-		nextCursor, _ = pagination.EncodeCursor(newCursor)
+		nextCursor, err = pagination.EncodeCursor(newCursor)
+
+		if err != nil {
+			return nil, &dtos.CursorBasedResponseMeta{}, fmt.Errorf("%w : %v", ErrorInvalidCursor, err)
+		}
+
 	}
 
 	meta := &dtos.CursorBasedResponseMeta{

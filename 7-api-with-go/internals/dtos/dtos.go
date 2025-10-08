@@ -19,8 +19,8 @@ type CursorBasedResponseMeta struct {
 }
 
 type ApiResponseList[T any, U any] struct {
-	Success bool   `json:"success,omitempty"`
-	Data    T      `json:"data"`
+	Success bool   `json:"success"`
+	Data    T      `json:"data,omitempty"`
 	Message string `json:"message,omitempty"`
 	Meta    *U     `json:"meta,omitempty"`
 }
