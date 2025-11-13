@@ -3,8 +3,9 @@ package domain
 import "time"
 
 type Note struct {
-	title       string
-	description string
-	createdAt   time.Time
-	updatedAt   time.Time
+	ID          int64
+	Title       string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

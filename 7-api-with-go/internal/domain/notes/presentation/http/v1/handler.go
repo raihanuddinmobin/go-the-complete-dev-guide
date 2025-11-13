@@ -1,10 +1,11 @@
 package v1
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"mobin.dev/internal/common/response"
 	"mobin.dev/internal/domain/notes/application"
 )
 
@@ -20,7 +21,13 @@ func (n *NotesHandler) GetNotesHandler(ctx *gin.Context) {
 
 	notes, err := n.service.GetNotes(ctx.Request.Context())
 
-	fmt.Println(notes, err)
+	err = errors.New("something went wrong")
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, "Failed to fetch notes", "INTERNAL_SERVER_ERROR")
+		return
+	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Get All Notes Successfully!"})
+	notesDto := application.ToNoteDTOs(notes)
+
+	response.Success(ctx, "Fetched Notes Successfully", notesDto)
 }
