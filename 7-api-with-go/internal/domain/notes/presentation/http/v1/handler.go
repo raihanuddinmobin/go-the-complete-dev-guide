@@ -23,7 +23,7 @@ func (n *NotesHandler) GetNotesHandler(ctx *gin.Context) {
 
 	err = errors.New("something went wrong")
 	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "Failed to fetch notes", "INTERNAL_SERVER_ERROR")
+		response.Error(ctx, http.StatusInternalServerError, "Failed to fetch notes", response.INTERNAL_SERVER_ERROR)
 		return
 	}
 
