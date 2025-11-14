@@ -1,11 +1,9 @@
 package domain
 
-import "time"
-
 type Note struct {
-	ID          int64
-	Title       string
-	Description string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	id          int64
+	title       string
+	description string
+	createdAt   string
+	updatedAt   string
 }

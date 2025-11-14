@@ -9,5 +9,5 @@ import (
 func main() {
 
 	appInstance := app.NewApp(&sql.DB{})
-	appInstance.RunServer()
+	appInstance.StartServer()
 }

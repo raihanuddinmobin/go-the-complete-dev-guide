@@ -1,21 +1,11 @@
 package application
 
-import (
-	"context"
+import "mobin.dev/internal/domain/notes/domain"
 
-	"mobin.dev/internal/domain/notes/domain"
-)
-
-type NoteService struct {
+type NotesService struct {
 	repo domain.Repository
 }
 
-func NewNotesService(repo domain.Repository) *NoteService {
-	return &NoteService{repo}
-}
-
-func (n *NoteService) GetNotes(context context.Context) ([]*domain.Note, error) {
-	notes, err := n.repo.FindAll(context)
-
-	return notes, err
+func NewNotesService(repo domain.Repository) *NotesService {
+	return &NotesService{repo}
 }

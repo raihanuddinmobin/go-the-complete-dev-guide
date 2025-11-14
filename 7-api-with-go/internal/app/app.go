@@ -1,13 +1,11 @@
 package app
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
 type App struct {
-	mysql *sql.DB
+	pg *sql.DB
 }
 
-func NewApp(mysql *sql.DB) *App {
-	return &App{mysql}
+func NewApp(pg *sql.DB) *App {
+	return &App{pg: pg}
 }

@@ -4,10 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterNotesRouter(g *gin.RouterGroup, h *NotesHandler) {
+func RegisterNotesRouter(grp *gin.RouterGroup, h *NotesHandler) {
 
-	notes := g.Group("/notes")
+	notes := grp.Group("/notes")
 	{
 		notes.GET("/", h.GetNotesHandler)
 	}
+
 }
