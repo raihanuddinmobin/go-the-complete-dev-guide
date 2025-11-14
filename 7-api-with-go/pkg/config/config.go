@@ -62,6 +62,14 @@ func Load() {
 	})
 }
 
+func Get() *Config {
+	if !isLoaded {
+		log.Print("⚠️ Config.Get() called before Load() — returning false")
+	}
+
+	return Cnf
+}
+
 func (c *Config) IsDevMode() bool {
 	if !isLoaded {
 		log.Print("⚠️ Config.IsDevMode() called before Load() — returning false")
