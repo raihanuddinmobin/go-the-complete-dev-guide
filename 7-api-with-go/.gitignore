@@ -1,0 +1,36 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*_test
+
+# Output of `go build`
+*.out
+
+# Dependency directories
+vendor/
+
+# Go module cache
+# This can be ignored as it's typically managed by Go itself
+# and can be large.
+pkg/mod/
+
+# Editor-specific files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# Log files
+*.log
+
+# Other common ignored files
+tmp/
+.env
+.env.*
+*.env
