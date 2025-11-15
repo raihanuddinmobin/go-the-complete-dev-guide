@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -41,4 +42,11 @@ func Connect() (*mongo.Client, error) {
 	client = c
 	fmt.Println("Successfully Connected MongoDB ✅")
 	return c, nil
+}
+
+func Disconnect() {
+	if client != nil {
+		_ = client.Disconnect(context.Background())
+		log.Println("MongoDB disconnected ⛔")
+	}
 }

@@ -5,6 +5,7 @@ import (
 
 	"mobin.dev/internal/app"
 	"mobin.dev/internal/db/mongo"
+	"mobin.dev/internal/db/mysql"
 	"mobin.dev/internal/db/pgsql"
 	"mobin.dev/pkg/config"
 )
@@ -14,6 +15,7 @@ func main() {
 	config.Load()
 
 	dbPgsql, errPgsql := pgsql.Connect()
+	dbMysql, errMysql := mysql.Connect()
 	dbMongo, errMongo := mongo.Connect()
 
 	if errPgsql != nil {
@@ -24,8 +26,15 @@ func main() {
 		fmt.Printf("❌ Mongo Connection Failed : %v\n", errMongo)
 	}
 
-	fmt.Println(dbMongo)
+	if errMysql != nil {
+		fmt.Printf("❌ Mysql Connection Failed : %v\n", errMysql)
+	}
+
 	defer dbPgsql.Close()
+	defer mongo.Disconnect()
+
+	// JUST OKAY
+	fmt.Println(dbMongo, dbMysql)
 
 	appInstance := app.NewApp(dbPgsql)
 	appInstance.StartServer()

@@ -23,6 +23,13 @@ type Config struct {
 
 	// MongoDB Config
 	MongoURI string
+
+	// Mysql config
+	MYSQL_Host     string
+	MYSQL_User     string
+	MYSQL_Password string
+	MYSQL_DbName   string
+	MYSQL_Port     string
 }
 
 var (
@@ -54,15 +61,34 @@ func Load() {
 		// Mongodb Config
 		MongoURI := os.Getenv("MONGO_URI")
 
+		// Mysql config
+		MYSQL_Host := os.Getenv("MYSQL_HOST")
+		MYSQL_User := os.Getenv("MYSQL_USER")
+		MYSQL_Password := os.Getenv("MYSQL_PASSWORD")
+		MYSQL_DbName := os.Getenv("MYSQL_DB_NAME")
+		MYSQL_Port := os.Getenv("MYSQL_PORT")
+
 		Cnf = &Config{
-			Port:       Port,
+			// App
+			Port:   Port,
+			AppEnv: AppEnv,
+
+			// Postgres
 			PGHost:     PGHost,
 			PGUser:     PGUser,
 			PGPassword: PGPassword,
 			PGDbName:   PGDbName,
 			PGPort:     PGPort,
-			AppEnv:     AppEnv,
-			MongoURI:   MongoURI,
+
+			// MongoDB
+			MongoURI: MongoURI,
+
+			// Mysql
+			MYSQL_Host:     MYSQL_Host,
+			MYSQL_User:     MYSQL_User,
+			MYSQL_Password: MYSQL_Password,
+			MYSQL_DbName:   MYSQL_DbName,
+			MYSQL_Port:     MYSQL_Port,
 		}
 
 		isLoaded = true
