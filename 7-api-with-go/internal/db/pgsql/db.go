@@ -3,6 +3,7 @@ package pgsql
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/lib/pq"
 	"mobin.dev/pkg/config"
@@ -17,6 +18,10 @@ func Connect() (*sql.DB, error) {
 		cnf.PGHost, cnf.PGPort, cnf.PGUser, cnf.PGPassword, cnf.PGDbName)
 
 	db, err := sql.Open("postgres", psqlInfo)
+
+	db.SetConnMaxIdleTime(time.Second * 10)
+	db.SetMaxIdleConns(50)
+	db.SetMaxIdleConns(5)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect pg_sql, reason : %w ", err)

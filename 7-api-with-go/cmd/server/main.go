@@ -22,15 +22,16 @@ func main() {
 		fmt.Printf("❌ Pgsql Connection Failed : %v\n", errPgsql)
 	}
 
-	if errMongo != nil {
-		fmt.Printf("❌ Mongo Connection Failed : %v\n", errMongo)
-	}
-
 	if errMysql != nil {
 		fmt.Printf("❌ Mysql Connection Failed : %v\n", errMysql)
 	}
 
+	if errMongo != nil {
+		fmt.Printf("❌ Mongo Connection Failed : %v\n", errMongo)
+	}
+
 	defer dbPgsql.Close()
+	defer dbMysql.Close()
 	defer mongo.Disconnect()
 
 	// JUST OKAY
