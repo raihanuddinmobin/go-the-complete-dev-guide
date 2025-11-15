@@ -20,6 +20,9 @@ type Config struct {
 	PGPassword string
 	PGDbName   string
 	PGPort     string
+
+	// MongoDB Config
+	MongoURI string
 }
 
 var (
@@ -48,6 +51,9 @@ func Load() {
 		PGDbName := os.Getenv("PGDBNAME")
 		PGPort := os.Getenv("PGPORT")
 
+		// Mongodb Config
+		MongoURI := os.Getenv("MONGO_URI")
+
 		Cnf = &Config{
 			Port:       Port,
 			PGHost:     PGHost,
@@ -56,6 +62,7 @@ func Load() {
 			PGDbName:   PGDbName,
 			PGPort:     PGPort,
 			AppEnv:     AppEnv,
+			MongoURI:   MongoURI,
 		}
 
 		isLoaded = true

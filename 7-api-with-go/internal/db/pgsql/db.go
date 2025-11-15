@@ -19,11 +19,11 @@ func Connect() (*sql.DB, error) {
 	db, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect db, reason :%w ", err)
+		return nil, fmt.Errorf("failed to connect pg_sql, reason : %w ", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping db, reason :%w ", err)
+		return nil, fmt.Errorf("failed to ping pg_sql, reason : %w ", err)
 	}
 
 	fmt.Println("Successfully Connected PgSql ✅")
