@@ -1,9 +1,10 @@
 package domain
 
 type Note struct {
-	id          int64
-	title       string
-	description string
-	createdAt   string
-	updatedAt   string
+	Id        int64
+	UserId    int64
+	Title     string
+	Body      string
+	CreatedAt string
+	UpdatedAt string
 }

@@ -1,0 +1,12 @@
+package errcode
+
+const (
+	// Generic
+	INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+	NOT_FOUND             = "NOT_FOUND"
+	UNAUTHORIZED          = "UNAUTHORIZED"
+
+	// Validation
+	VALIDATION_ERROR = "VALIDATION_ERROR"
+	FIELD_REQUIRED   = "FIELD_REQUIRED"
+)
