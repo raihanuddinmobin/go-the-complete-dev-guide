@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"mobin.dev/internal/domain/notes/domain"
 )
@@ -24,9 +26,24 @@ func (s *NotesService) FetchNotes(ctx context.Context) ([]*NoteDTO, error) {
 	convertedNots := ToNoteDtos(notes)
 
 	if len(convertedNots) == 0 {
-
 		return nil, ErrNotesNotFound
 	}
 
 	return convertedNots, nil
+}
+
+func (s *NotesService) FetchNote(ctx context.Context, id int) (*NoteDTO, error) {
+	note, err := s.repo.FindById(ctx, id)
+
+	fmt.Print(err)
+	if err != nil {
+		if errors.Is(err, domain.ErrNoteNotFound) {
+			return nil, ErrNoteNotFund
+		}
+		return nil, ErrDBFailure
+	}
+
+	convertedNote := ToNoteDto(note)
+
+	return convertedNote, nil
 }

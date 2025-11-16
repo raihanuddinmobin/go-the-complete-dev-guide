@@ -3,6 +3,7 @@ package v1
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"mobin.dev/internal/common/errcode"
@@ -25,9 +26,11 @@ func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
 		switch {
 		case errors.Is(err, application.ErrNotesNotFound):
 			response.Error(c, http.StatusNotFound, "No Notes Found", errcode.NOT_FOUND)
+			return
 		case errors.Is(err, application.ErrDBFailure):
 			response.Error(c, http.StatusInternalServerError, "Unexpected server error", errcode.INTERNAL_SERVER_ERROR)
-		case errors.Is(err, application.ErrNotesNotFound):
+			return
+		default:
 			response.Error(c, http.StatusInternalServerError, "Something went wrong", errcode.INTERNAL_SERVER_ERROR)
 		}
 
@@ -35,4 +38,35 @@ func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
 	}
 
 	response.Success(c, "Get all notes successfully!", notes)
+}
+
+func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
+	id := c.Param("id")
+	num, err := strconv.Atoi(id)
+
+	if id == "" || err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid Path parameters", errcode.INTERNAL_SERVER_ERROR, gin.H{
+			"message": "Path parameters must be number or greater then 1",
+			"err":     id,
+		})
+		return
+	}
+
+	note, err := h.service.FetchNote(c, num)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, application.ErrNoteNotFund):
+			response.Error(c, http.StatusNotFound, "Note Not Found", errcode.NOT_FOUND)
+			return
+		case errors.Is(err, application.ErrDBFailure):
+			response.Error(c, http.StatusInternalServerError, "Unexpected server error", errcode.INTERNAL_SERVER_ERROR)
+			return
+		default:
+			response.Error(c, http.StatusInternalServerError, "Something went wrong", errcode.INTERNAL_SERVER_ERROR)
+		}
+		return
+	}
+
+	response.Success(c, "Fetch Notes Successfully!", note)
 }

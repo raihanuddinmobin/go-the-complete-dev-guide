@@ -1,6 +1,13 @@
 package application
 
-import "errors"
+import (
+	"errors"
 
-var ErrNotesNotFound = errors.New("Notes not found")
-var ErrDBFailure = errors.New("Database failure")
+	"mobin.dev/internal/domain/notes/domain"
+)
+
+var (
+	ErrNotesNotFound = errors.New("Notes not found")
+	ErrNoteNotFund   = domain.ErrNoteNotFound
+	ErrDBFailure     = errors.New("Database failure")
+)

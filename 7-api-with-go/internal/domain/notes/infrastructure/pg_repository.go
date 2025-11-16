@@ -47,3 +47,17 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 
 	return notes, nil
 }
+
+func (r *NotesRepository) FindById(ctx context.Context, id int) (*domain.Note, error) {
+	var note = &domain.Note{}
+
+	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes WHERE id = $1`, id)
+	if err := row.Scan(&note.Id, &note.UserId, &note.Title, &note.Body, &note.CreatedAt, &note.UpdatedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, domain.ErrNoteNotFound
+		}
+		return nil, fmt.Errorf("Failed to fetch notes Id : %d  , reason : %w ", id, err)
+	}
+
+	return note, nil
+}
