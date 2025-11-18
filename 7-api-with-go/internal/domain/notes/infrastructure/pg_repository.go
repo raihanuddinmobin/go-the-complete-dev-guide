@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"mobin.dev/internal/domain/notes/domain"
 )
@@ -16,12 +17,23 @@ func NewNotesRepository(db *sql.DB) domain.Repository {
 	return &NotesRepository{db}
 }
 
-func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) error {
-	return nil
+func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domain.Note, error) {
+	err := r.db.QueryRowContext(ctx,
+		`INSERT INTO notes (user_id, title, body) VALUES($1, $2, $3) RETURNING id, created_at, updated_at`,
+		note.UserId, note.Title, note.Body,
+	).Scan(&note.Id, &note.CreatedAt, &note.UpdatedAt)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			return nil, domain.ErrDuplicateNote
+		}
+		return nil, domain.ErrDBFailure
+	}
+
+	return note, nil
 }
 
 func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
-
 	rows, err := r.db.QueryContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes LIMIT 200`)
 
 	if err != nil {

@@ -8,3 +8,11 @@ type Note struct {
 	CreatedAt string
 	UpdatedAt string
 }
+
+func NewNote(userId int64, title, body string) *Note {
+	return &Note{
+		UserId: userId,
+		Title:  title,
+		Body:   body,
+	}
+}

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -38,12 +39,26 @@ func (s *NotesService) FetchNote(ctx context.Context, id int) (*NoteDTO, error) 
 	fmt.Print(err)
 	if err != nil {
 		if errors.Is(err, domain.ErrNoteNotFound) {
-			return nil, ErrNoteNotFund
+			return nil, ErrNoteNotFound
 		}
 		return nil, ErrDBFailure
 	}
 
-	convertedNote := ToNoteDto(note)
+	return ToNoteDto(note), nil
+}
 
-	return convertedNote, nil
+func (s *NotesService) PostNote(ctx context.Context, nDto *NoteDTO) (*NoteDTO, error) {
+	note := domain.NewNote(nDto.UserId, nDto.Title, nDto.Body)
+
+	createdNote, err := s.repo.Create(ctx, note)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrDBFailure
+		}
+
+		return nil, err
+	}
+
+	return ToNoteDto(createdNote), nil
 }

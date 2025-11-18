@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"mobin.dev/internal/domain/notes/module"
 	notesV1 "mobin.dev/internal/domain/notes/presentation/v1"
+	"mobin.dev/internal/middleware"
 )
 
 func (a *App) StartServer() {
@@ -11,6 +12,8 @@ func (a *App) StartServer() {
 	router := gin.Default()
 
 	notes := module.Init(a.pg)
+
+	router.Use(middleware.ContentTypeMiddleware())
 
 	v1 := router.Group("/v1")
 	{

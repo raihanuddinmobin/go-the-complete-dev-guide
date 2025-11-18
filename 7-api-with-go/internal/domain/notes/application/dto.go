@@ -1,14 +1,20 @@
 package application
 
-import "mobin.dev/internal/domain/notes/domain"
+import (
+	"encoding/xml"
+
+	"github.com/go-playground/validator/v10"
+	"mobin.dev/internal/domain/notes/domain"
+)
 
 type NoteDTO struct {
-	Id        int64  `json:"id"`
-	UserId    int64  `json:"userId"`
-	Title     string `json:"title" validate:"required,min=5,max=100"`
-	Body      string `json:"description" validate:"required,min=5,max=1000"`
-	CreatedAt string `json:"createdAt" validate:"required"`
-	UpdatedAt string `json:"updatedAt" validate:"required"`
+	XMLName   xml.Name `xml:"note" json:"-"`
+	Id        int64    `json:"id" xml:"id"`
+	UserId    int64    `json:"userId" validate:"required"  xml:"userId"`
+	Title     string   `json:"title" validate:"required"  xml:"title"`
+	Body      string   `json:"body" validate:"required"  xml:"body"`
+	CreatedAt string   `json:"createdAt" xml:"createdAt"`
+	UpdatedAt string   `json:"updatedAt" xml:"updatedAt"`
 }
 
 func ToNoteDto(note *domain.Note) *NoteDTO {
@@ -23,4 +29,10 @@ func ToNoteDtos(notes []*domain.Note) []*NoteDTO {
 	}
 
 	return dtos
+}
+
+var validate = validator.New()
+
+func (n *NoteDTO) Validate() error {
+	return validate.Struct(n)
 }
