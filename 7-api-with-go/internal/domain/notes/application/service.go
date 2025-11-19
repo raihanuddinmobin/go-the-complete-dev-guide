@@ -2,9 +2,7 @@ package application
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"fmt"
 
 	"mobin.dev/internal/domain/notes/domain"
 )
@@ -27,16 +25,15 @@ func (s *NotesService) FetchNotes(ctx context.Context) ([]*NoteDTO, error) {
 	convertedNots := ToNoteDtos(notes)
 
 	if len(convertedNots) == 0 {
-		return nil, ErrNotesNotFound
+		return nil, ErrNoteNotFound
 	}
 
 	return convertedNots, nil
 }
 
-func (s *NotesService) FetchNote(ctx context.Context, id int) (*NoteDTO, error) {
+func (s *NotesService) FetchNote(ctx context.Context, id int64) (*NoteDTO, error) {
 	note, err := s.repo.FindById(ctx, id)
 
-	fmt.Print(err)
 	if err != nil {
 		if errors.Is(err, domain.ErrNoteNotFound) {
 			return nil, ErrNoteNotFound
@@ -53,11 +50,10 @@ func (s *NotesService) PostNote(ctx context.Context, nDto *NoteDTO) (*NoteDTO, e
 	createdNote, err := s.repo.Create(ctx, note)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrDBFailure
+		if errors.Is(err, domain.ErrDuplicateNote) {
+			return nil, ErrDuplicateNote
 		}
-
-		return nil, err
+		return nil, ErrDBFailure
 	}
 
 	return ToNoteDto(createdNote), nil

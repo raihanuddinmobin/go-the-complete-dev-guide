@@ -2,19 +2,20 @@ package application
 
 import (
 	"encoding/xml"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"mobin.dev/internal/domain/notes/domain"
 )
 
 type NoteDTO struct {
-	XMLName   xml.Name `xml:"note" json:"-"`
-	Id        int64    `json:"id" xml:"id"`
-	UserId    int64    `json:"userId" validate:"required"  xml:"userId"`
-	Title     string   `json:"title" validate:"required"  xml:"title"`
-	Body      string   `json:"body" validate:"required"  xml:"body"`
-	CreatedAt string   `json:"createdAt" xml:"createdAt"`
-	UpdatedAt string   `json:"updatedAt" xml:"updatedAt"`
+	XMLName   xml.Name  `xml:"note" json:"-"`
+	Id        int64     `json:"id" xml:"id"`
+	UserId    int64     `json:"userId" validate:"required"  xml:"userId"`
+	Title     string    `json:"title" validate:"required"  xml:"title"`
+	Body      string    `json:"body" validate:"required"  xml:"body"`
+	CreatedAt time.Time `json:"createdAt" xml:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" xml:"updatedAt"`
 }
 
 func ToNoteDto(note *domain.Note) *NoteDTO {

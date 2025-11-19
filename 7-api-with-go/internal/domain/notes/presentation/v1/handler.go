@@ -26,7 +26,7 @@ func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
 
 	if err != nil {
 		switch {
-		case errors.Is(err, application.ErrNotesNotFound):
+		case errors.Is(err, application.ErrNoteNotFound):
 			response.Error(c, http.StatusNotFound, "No Notes Found", errcode.NOT_FOUND)
 			return
 		case errors.Is(err, application.ErrDBFailure):
@@ -44,9 +44,9 @@ func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
 
 func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
 	id := c.Param("id")
-	num, err := strconv.Atoi(id)
+	num, err := strconv.ParseInt(id, 10, 64)
 
-	if id == "" || err != nil {
+	if err != nil {
 		response.Error(c, http.StatusBadRequest, "Invalid Path parameters", errcode.INTERNAL_SERVER_ERROR, gin.H{
 			"message": "Path parameters must be number or greater then 1",
 			"err":     id,
@@ -54,11 +54,11 @@ func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
 		return
 	}
 
-	note, err := h.service.FetchNote(c, num)
+	note, err := h.service.FetchNote(c.Request.Context(), num)
 
 	if err != nil {
 		switch {
-		case errors.Is(err, application.ErrNotesNotFound):
+		case errors.Is(err, application.ErrNoteNotFound):
 			response.Error(c, http.StatusNotFound, "Note Not Found", errcode.NOT_FOUND)
 			return
 		case errors.Is(err, application.ErrDBFailure):
@@ -74,9 +74,6 @@ func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
 }
 
 func (h *NotesHandler) PostNoteHandler(c *gin.Context) {
-
-	err := errors.New("test")
-
 	var dto application.NoteDTO
 
 	if err := c.ShouldBindJSON(&dto); err != nil {

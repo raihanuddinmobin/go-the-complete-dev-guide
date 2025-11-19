@@ -27,7 +27,7 @@ func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domai
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, domain.ErrDuplicateNote
 		}
-		return nil, domain.ErrDBFailure
+		return nil, err
 	}
 
 	return note, nil
@@ -60,7 +60,7 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 	return notes, nil
 }
 
-func (r *NotesRepository) FindById(ctx context.Context, id int) (*domain.Note, error) {
+func (r *NotesRepository) FindById(ctx context.Context, id int64) (*domain.Note, error) {
 	var note = &domain.Note{}
 
 	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes WHERE id = $1`, id)

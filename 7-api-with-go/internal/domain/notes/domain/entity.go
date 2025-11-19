@@ -1,12 +1,14 @@
 package domain
 
+import "time"
+
 type Note struct {
 	Id        int64
 	UserId    int64
 	Title     string
 	Body      string
-	CreatedAt string
-	UpdatedAt string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewNote(userId int64, title, body string) *Note {

@@ -2,13 +2,10 @@ package application
 
 import (
 	"errors"
-
-	"mobin.dev/internal/domain/notes/domain"
 )
 
 var (
-	ErrNotesNotFound = errors.New("Notes not found")
-	ErrNoteNotFound  = domain.ErrNoteNotFound
-	ErrDBFailure     = domain.ErrDBFailure
-	ErrDuplicateNote = domain.ErrDuplicateNote
+	ErrNoteNotFound  = errors.New("note not found")
+	ErrDuplicateNote = errors.New("duplicate note")
+	ErrDBFailure     = errors.New("database failure")
 )
