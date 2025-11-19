@@ -11,6 +11,7 @@ import (
 	"mobin.dev/internal/common/response"
 	"mobin.dev/internal/common/validation"
 	"mobin.dev/internal/domain/notes/application"
+	"mobin.dev/internal/infrastructure/logger"
 )
 
 type NotesHandler struct {
@@ -22,18 +23,20 @@ func NewNotesHandler(service *application.NotesService) *NotesHandler {
 }
 
 func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
+	traceId := logger.TraceIdFromContext(c.Request.Context())
+
 	notes, err := h.service.FetchNotes(c.Request.Context())
 
 	if err != nil {
 		switch {
 		case errors.Is(err, application.ErrNoteNotFound):
-			response.Error(c, http.StatusNotFound, "No Notes Found", errcode.NOT_FOUND)
+			response.Error(c, http.StatusNotFound, "No Notes Found", traceId, errcode.NOT_FOUND)
 			return
 		case errors.Is(err, application.ErrDBFailure):
-			response.Error(c, http.StatusInternalServerError, "Unexpected server error", errcode.INTERNAL_SERVER_ERROR)
+			response.Error(c, http.StatusInternalServerError, "Unexpected server error", traceId, errcode.INTERNAL_SERVER_ERROR)
 			return
 		default:
-			response.Error(c, http.StatusInternalServerError, "Something went wrong", errcode.INTERNAL_SERVER_ERROR)
+			response.Error(c, http.StatusInternalServerError, "Something went wrong", traceId, errcode.INTERNAL_SERVER_ERROR)
 		}
 
 		return
@@ -43,11 +46,13 @@ func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
 }
 
 func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
+	traceId := logger.TraceIdFromContext(c.Request.Context())
+
 	id := c.Param("id")
 	num, err := strconv.ParseInt(id, 10, 64)
 
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, "Invalid Path parameters", errcode.INTERNAL_SERVER_ERROR, gin.H{
+		response.Error(c, http.StatusBadRequest, "Invalid Path parameters", traceId, errcode.INTERNAL_SERVER_ERROR, gin.H{
 			"message": "Path parameters must be number or greater then 1",
 			"err":     id,
 		})
@@ -59,13 +64,13 @@ func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, application.ErrNoteNotFound):
-			response.Error(c, http.StatusNotFound, "Note Not Found", errcode.NOT_FOUND)
+			response.Error(c, http.StatusNotFound, "Note Not Found", traceId, errcode.NOT_FOUND)
 			return
 		case errors.Is(err, application.ErrDBFailure):
-			response.Error(c, http.StatusInternalServerError, "Unexpected server error", errcode.INTERNAL_SERVER_ERROR)
+			response.Error(c, http.StatusInternalServerError, "Unexpected server error", traceId, errcode.INTERNAL_SERVER_ERROR)
 			return
 		default:
-			response.Error(c, http.StatusInternalServerError, "Something went wrong", errcode.INTERNAL_SERVER_ERROR)
+			response.Error(c, http.StatusInternalServerError, "Something went wrong", traceId, errcode.INTERNAL_SERVER_ERROR)
 		}
 		return
 	}
@@ -74,10 +79,12 @@ func (h *NotesHandler) GetNoteHandler(c *gin.Context) {
 }
 
 func (h *NotesHandler) PostNoteHandler(c *gin.Context) {
+	traceId := logger.TraceIdFromContext(c.Request.Context())
+
 	var dto application.NoteDTO
 
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		response.Error(c, http.StatusUnprocessableEntity, "Invalid JSON Body Data!", errcode.INTERNAL_SERVER_ERROR)
+		response.Error(c, http.StatusUnprocessableEntity, "Invalid JSON Body Data!", traceId, errcode.INTERNAL_SERVER_ERROR)
 		return
 	}
 
@@ -87,6 +94,7 @@ func (h *NotesHandler) PostNoteHandler(c *gin.Context) {
 				c,
 				http.StatusBadRequest,
 				"Validation Failed",
+				traceId,
 				errcode.VALIDATION_ERROR,
 				validation.FormatValidationErrors(vErrs),
 			)
@@ -95,18 +103,18 @@ func (h *NotesHandler) PostNoteHandler(c *gin.Context) {
 		return
 	}
 
-	createdNote, err := h.service.PostNote(c, &dto)
+	createdNote, err := h.service.PostNote(c.Request.Context(), &dto)
 
 	if err != nil {
 		switch {
 		case errors.Is(err, application.ErrDuplicateNote):
-			response.Error(c, http.StatusConflict, "Duplicating Note", errcode.DUPLICATE)
+			response.Error(c, http.StatusConflict, "Duplicating Note", traceId, errcode.DUPLICATE)
 			return
 		case errors.Is(err, application.ErrDBFailure):
-			response.Error(c, http.StatusInternalServerError, "Unexpected server error", errcode.INTERNAL_SERVER_ERROR)
+			response.Error(c, http.StatusInternalServerError, "Unexpected server error", traceId, errcode.INTERNAL_SERVER_ERROR)
 			return
 		default:
-			response.Error(c, http.StatusInternalServerError, "Something went wrong", errcode.INTERNAL_SERVER_ERROR)
+			response.Error(c, http.StatusInternalServerError, "Something went wrong", traceId, errcode.INTERNAL_SERVER_ERROR)
 		}
 		return
 	}

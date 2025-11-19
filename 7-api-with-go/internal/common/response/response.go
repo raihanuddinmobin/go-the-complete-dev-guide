@@ -26,6 +26,7 @@ type APIError struct {
 	Status  string      `json:"status" xml:"status"`
 	Message string      `json:"message" xml:"message"`
 	Code    string      `json:"code,omitempty" xml:"code,omitempty"`
+	TraceID string      `json:"traceId,omitempty" xml:"traceId,omitempty"`
 	Details interface{} `json:"details,omitempty" xml:"details,omitempty"`
 }
 
@@ -65,11 +66,12 @@ func SuccessWithPagination(c *gin.Context, message string, data interface{}, met
 	})
 }
 
-func Error(c *gin.Context, statusCode int, message string, code string, details ...interface{}) {
+func Error(c *gin.Context, statusCode int, message, traceID, code string, details ...interface{}) {
 	err := APIError{
 		Status:  "error",
 		Message: message,
 		Code:    code,
+		TraceID: traceID,
 	}
 	if len(details) > 0 {
 		err.Details = details[0]

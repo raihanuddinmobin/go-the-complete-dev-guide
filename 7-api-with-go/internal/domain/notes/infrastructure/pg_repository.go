@@ -19,13 +19,15 @@ func NewNotesRepository(db *sql.DB) domain.Repository {
 }
 
 func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domain.Note, error) {
+	log := logger.LoggerWithContext(ctx)
+
 	err := r.db.QueryRowContext(ctx,
 		`INSERT INTO notes (user_id, title, body) VALUES($1, $2, $3) RETURNING id, created_at, updated_at`,
 		note.UserId, note.Title, note.Body,
 	).Scan(&note.Id, &note.CreatedAt, &note.UpdatedAt)
 
 	if err != nil {
-		logger.Log.Error("DB Error on Create()", zap.Error(err))
+		log.Error("DB Error on Create()", zap.Error(err))
 
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, domain.ErrDuplicateNote
@@ -37,11 +39,13 @@ func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domai
 }
 
 func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
+	log := logger.LoggerWithContext(ctx)
+
 	rows, err := r.db.QueryContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes LIMIT 200`)
 
 	if err != nil {
-		logger.Log.Error("DB Error on FindAll()", zap.Error(err))
-		return nil, nil
+		log.Error("DB Error on FindAll()", zap.Error(err))
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -51,7 +55,7 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 		var n domain.Note
 
 		if err := rows.Scan(&n.Id, &n.UserId, &n.Title, &n.Body, &n.CreatedAt, &n.UpdatedAt); err != nil {
-			logger.Log.Error("Scan Error in FindAll()", zap.Int64("id", n.Id), zap.String("title", n.Title), zap.Error(err))
+			log.Error("Scan Error in FindAll()", zap.Int64("id", n.Id), zap.String("title", n.Title), zap.Error(err))
 			return nil, err
 		}
 
@@ -59,7 +63,7 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.Log.Error("Rows Iteration Error in FindAll()", zap.Error(err))
+		log.Error("Rows Iteration Error in FindAll()", zap.Error(err))
 		return nil, err
 	}
 
@@ -67,11 +71,12 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 }
 
 func (r *NotesRepository) FindById(ctx context.Context, id int64) (*domain.Note, error) {
+	log := logger.LoggerWithContext(ctx)
 	var note = &domain.Note{}
 
 	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes WHERE id = $1`, id)
 	if err := row.Scan(&note.Id, &note.UserId, &note.Title, &note.Body, &note.CreatedAt, &note.UpdatedAt); err != nil {
-		logger.Log.Error("DB Error in FindById()", zap.Error(err))
+		log.Error("DB Error in FindById()", zap.Error(err))
 
 		if err == sql.ErrNoRows {
 			return nil, domain.ErrNoteNotFound

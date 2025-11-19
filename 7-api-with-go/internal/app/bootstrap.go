@@ -14,6 +14,7 @@ func (a *App) StartServer() {
 
 	notes := module.Init(a.pg)
 
+	router.Use(middleware.TraceMiddleware())
 	router.Use(middleware.ContentTypeMiddleware())
 
 	v1 := router.Group("/v1")
