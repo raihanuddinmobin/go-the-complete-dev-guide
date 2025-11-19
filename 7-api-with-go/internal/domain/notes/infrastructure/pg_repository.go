@@ -3,10 +3,11 @@ package infrastructure
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
+	"go.uber.org/zap"
 	"mobin.dev/internal/domain/notes/domain"
+	"mobin.dev/internal/infrastructure/logger"
 )
 
 type NotesRepository struct {
@@ -24,6 +25,8 @@ func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domai
 	).Scan(&note.Id, &note.CreatedAt, &note.UpdatedAt)
 
 	if err != nil {
+		logger.Log.Error("DB Error on Create()", zap.Error(err))
+
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, domain.ErrDuplicateNote
 		}
@@ -37,7 +40,8 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes LIMIT 200`)
 
 	if err != nil {
-		return nil, fmt.Errorf("query error in FetchAll : %w ", err)
+		logger.Log.Error("DB Error on FindAll()", zap.Error(err))
+		return nil, nil
 	}
 	defer rows.Close()
 
@@ -47,14 +51,16 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 		var n domain.Note
 
 		if err := rows.Scan(&n.Id, &n.UserId, &n.Title, &n.Body, &n.CreatedAt, &n.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("scan error in FetchAll : %w ", err)
+			logger.Log.Error("Scan Error in FindAll()", zap.Int64("id", n.Id), zap.String("title", n.Title), zap.Error(err))
+			return nil, err
 		}
 
 		notes = append(notes, &n)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows iteration error in FetchAll : %w ", err)
+		logger.Log.Error("Rows Iteration Error in FindAll()", zap.Error(err))
+		return nil, err
 	}
 
 	return notes, nil
@@ -65,10 +71,12 @@ func (r *NotesRepository) FindById(ctx context.Context, id int64) (*domain.Note,
 
 	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes WHERE id = $1`, id)
 	if err := row.Scan(&note.Id, &note.UserId, &note.Title, &note.Body, &note.CreatedAt, &note.UpdatedAt); err != nil {
+		logger.Log.Error("DB Error in FindById()", zap.Error(err))
+
 		if err == sql.ErrNoRows {
 			return nil, domain.ErrNoteNotFound
 		}
-		return nil, fmt.Errorf("Failed to fetch notes Id : %d  , reason : %w ", id, err)
+		return nil, err
 	}
 
 	return note, nil
