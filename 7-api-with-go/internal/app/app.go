@@ -1,11 +1,19 @@
 package app
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/redis/go-redis/v9"
+)
 
 type App struct {
-	pg *sql.DB
+	pg          *sql.DB
+	redisClient *redis.Client
 }
 
-func NewApp(pg *sql.DB) *App {
-	return &App{pg: pg}
+func NewApp(pg *sql.DB, redisClient *redis.Client) *App {
+	return &App{
+		pg,
+		redisClient,
+	}
 }

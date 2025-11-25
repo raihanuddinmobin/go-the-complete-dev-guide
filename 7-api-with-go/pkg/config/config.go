@@ -30,6 +30,10 @@ type Config struct {
 	MYSQL_Password string
 	MYSQL_DbName   string
 	MYSQL_Port     string
+
+	// Redis Config
+	RedisAddr     string
+	RedisPassword string
 }
 
 var (
@@ -68,6 +72,10 @@ func Load() {
 		MYSQL_DbName := os.Getenv("MYSQL_DB_NAME")
 		MYSQL_Port := os.Getenv("MYSQL_PORT")
 
+		// Redis Config
+		RedisAddr := os.Getenv("REDIS_ADDR")
+		RedisPassword := os.Getenv("REDIS_PASSWORD")
+
 		Cnf = &Config{
 			// App
 			Port:   Port,
@@ -89,6 +97,10 @@ func Load() {
 			MYSQL_Password: MYSQL_Password,
 			MYSQL_DbName:   MYSQL_DbName,
 			MYSQL_Port:     MYSQL_Port,
+
+			// Redis Config
+			RedisAddr:     RedisAddr,
+			RedisPassword: RedisPassword,
 		}
 
 		isLoaded = true

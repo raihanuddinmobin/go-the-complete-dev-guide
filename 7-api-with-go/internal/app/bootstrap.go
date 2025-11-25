@@ -12,7 +12,7 @@ func (a *App) StartServer() {
 
 	router := gin.Default()
 
-	notes := module.Init(a.pg)
+	notes := module.Init(a.pg, a.redisClient)
 
 	router.Use(middleware.TraceMiddleware())
 	router.Use(middleware.ContentTypeMiddleware())

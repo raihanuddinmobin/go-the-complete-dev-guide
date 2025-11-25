@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"go.uber.org/zap"
@@ -11,11 +12,12 @@ import (
 )
 
 type NotesRepository struct {
-	db *sql.DB
+	db    *sql.DB
+	cache *NotesCache
 }
 
-func NewNotesRepository(db *sql.DB) domain.Repository {
-	return &NotesRepository{db}
+func NewNotesRepository(db *sql.DB, redisClient *NotesCache) domain.Repository {
+	return &NotesRepository{db, redisClient}
 }
 
 func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domain.Note, error) {
@@ -72,6 +74,16 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 
 func (r *NotesRepository) FindById(ctx context.Context, id int64) (*domain.Note, error) {
 	log := logger.LoggerWithContext(ctx)
+	cacheNote, err := r.cache.GetNote(ctx, id)
+
+	if err != nil {
+		log.Warn("Redis GET Failed", zap.Error(err))
+	} else if cacheNote != nil {
+		fmt.Println("Cache HIT")
+		return cacheNote, nil
+	}
+	fmt.Println("Cache Miss")
+
 	var note = &domain.Note{}
 
 	row := r.db.QueryRowContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes WHERE id = $1`, id)
@@ -82,6 +94,10 @@ func (r *NotesRepository) FindById(ctx context.Context, id int64) (*domain.Note,
 			return nil, domain.ErrNoteNotFound
 		}
 		return nil, err
+	}
+
+	if err := r.cache.SetNote(ctx, id, note); err != nil {
+		log.Warn("Redis SET failed", zap.Error(err))
 	}
 
 	return note, nil
