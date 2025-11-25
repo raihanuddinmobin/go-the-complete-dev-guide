@@ -15,8 +15,8 @@ func NewNotesService(repo domain.Repository) *NotesService {
 	return &NotesService{repo}
 }
 
-func (s *NotesService) FetchNotes(ctx context.Context) ([]*NoteDTO, error) {
-	notes, err := s.repo.FindAll(ctx)
+func (s *NotesService) FetchNotes(ctx context.Context, limit, offset int) ([]*NoteDTO, error) {
+	notes, err := s.repo.FindAll(ctx, limit, offset)
 
 	if err != nil {
 		return nil, ErrDBFailure

@@ -2,12 +2,14 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"mobin.dev/internal/common/errcode"
+	"mobin.dev/internal/common/pagination"
 	"mobin.dev/internal/common/response"
 	"mobin.dev/internal/common/validation"
 	"mobin.dev/internal/domain/notes/application"
@@ -25,7 +27,34 @@ func NewNotesHandler(service *application.NotesService) *NotesHandler {
 func (h *NotesHandler) GetNotesHandler(c *gin.Context) {
 	traceId := logger.TraceIdFromContext(c.Request.Context())
 
-	notes, err := h.service.FetchNotes(c.Request.Context())
+	limit, lErr := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset, oErr := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	if lErr != nil || oErr != nil {
+		response.Error(c, http.StatusBadRequest, "Limit, Offset Must Be An Integer", traceId, errcode.FIELD_REQUIRED, gin.H{
+			"message": "You Provided Limit , Offset",
+			"limit":   c.Query("limit"),
+			"offset":  c.Query("offset"),
+		})
+		return
+	} else if limit < 0 || offset < 0 {
+		response.Error(c, http.StatusBadRequest, "Limit, Offset Must Be Positive", traceId, errcode.FIELD_REQUIRED, gin.H{
+			"message": "You Provided Limit , Offset",
+			"limit":   limit,
+			"offset":  offset,
+		})
+		return
+	}
+
+	if limit > pagination.MAX_LIMIT {
+		limit = pagination.MAX_LIMIT
+	} else if limit < pagination.MIN_LIMIT {
+		limit = pagination.MIN_LIMIT
+	}
+
+	fmt.Println(limit, offset)
+
+	notes, err := h.service.FetchNotes(c.Request.Context(), limit, offset)
 
 	if err != nil {
 		switch {

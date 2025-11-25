@@ -40,10 +40,19 @@ func (r *NotesRepository) Create(ctx context.Context, note *domain.Note) (*domai
 	return note, nil
 }
 
-func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
+func (r *NotesRepository) FindAll(ctx context.Context, limit, offset int) ([]*domain.Note, error) {
 	log := logger.LoggerWithContext(ctx)
+	cacheNotes, err := r.cache.GetNotes(ctx, limit, offset)
 
-	rows, err := r.db.QueryContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes LIMIT 200`)
+	if err != nil {
+		log.Warn("Redis GET Failed ", zap.Error(err))
+	} else if cacheNotes != nil {
+		return cacheNotes, nil
+	}
+
+	fmt.Println("Cache Miss")
+
+	rows, err := r.db.QueryContext(ctx, `SELECT id, user_id, title, body, created_at, updated_at FROM notes LIMIT $1 OFFSET $2`, limit, offset)
 
 	if err != nil {
 		log.Error("DB Error on FindAll()", zap.Error(err))
@@ -69,6 +78,12 @@ func (r *NotesRepository) FindAll(ctx context.Context) ([]*domain.Note, error) {
 		return nil, err
 	}
 
+	if offset/limit <= 3 {
+		if err := r.cache.SetNotes(ctx, limit, offset, notes); err != nil {
+			return nil, err
+		}
+	}
+
 	return notes, nil
 }
 
@@ -79,7 +94,6 @@ func (r *NotesRepository) FindById(ctx context.Context, id int64) (*domain.Note,
 	if err != nil {
 		log.Warn("Redis GET Failed", zap.Error(err))
 	} else if cacheNote != nil {
-		fmt.Println("Cache HIT")
 		return cacheNote, nil
 	}
 	fmt.Println("Cache Miss")
